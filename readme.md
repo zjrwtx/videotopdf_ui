@@ -17,14 +17,19 @@
 ### 废话不多说 直接上地址：
 
 **开源地址（欢迎给star支持一下王同学）：**[https://github.com/zjrwtx/videotopdf_ui](https://github.com/zjrwtx/videotopdf_ui)
-![image](https://github.com/zjrwtx/videotopdf_ui/assets/86822589/da4e0b1c-3d97-480d-b559-9fdd19a2628d)
 
 
+<a name="Lh8Tv"></a>
+# 如何运行
+```python
+pip install -r requirements.txt
+
+python app.py
+```
 
 <a name="Y2V7I"></a>
 ### 最后再推送一个视频解析下载网站工具（王同学常用）：
 **地址：**[**https://api.spapi.cn**](https://api.spapi.cn/)
 <a name="MaS4q"></a>
 ### ![image.png](https://cdn.nlark.com/yuque/0/2023/png/22859856/1695051487592-63ae2bb1-ed22-4693-986f-c4afa94feb11.png#averageHue=%23f5f5f4&clientId=u7931e213-9faa-4&from=paste&height=627&id=u72a57eef&originHeight=941&originWidth=1908&originalType=binary&ratio=1.5&rotation=0&showTitle=false&size=169817&status=done&style=none&taskId=u44194947-38e4-4773-833e-9025e19a4c9&title=&width=1272)<br /><br />
-**特别感谢（本项目基于此项目改造而成）:**[**https://github.com/kaushikj/video2pdf**](https://github.com/kaushikj/video2pdf)<br />![5d0f90bcd42e996b679307e0091ebde.jpg](https://cdn.nlark.com/yuque/0/2023/jpeg/22859856/1695052035159-dd180b8a-ea44-47b4-912a-93b3d12a8753.jpeg#averageHue=%23d9d9d9&clientId=u7931e213-9faa-4&from=paste&height=389&id=u5a08f9b6&originHeight=1296&originWidth=950&originalType=binary&ratio=1.5&rotation=0&showTitle=false&size=112057&status=done&style=none&taskId=u23c601bf-a76f-4142-a570-c1f213c40be&title=&width=285.3333740234375)
-
+**特别感谢（本项目基于此项目改造而成）:**[**https://github.com/kaushikj/video2pdf**](https://github.com/kaushikj/video2pdf)<br />![image.png](https://cdn.nlark.com/yuque/0/2023/png/22859856/1695092875054-ed99aa72-213d-4d72-aa82-8769a95825d1.png#averageHue=%23e2b58a&clientId=u0e123548-d84e-4&from=paste&height=285&id=ue2994baf&originHeight=787&originWidth=793&originalType=binary&ratio=1.5&rotation=0&showTitle=false&size=99938&status=done&style=none&taskId=u627b354d-9413-45a5-9c98-6b3906d4c1f&title=&width=287.66668701171875)<br />![5d0f90bcd42e996b679307e0091ebde.jpg](https://cdn.nlark.com/yuque/0/2023/jpeg/22859856/1695052035159-dd180b8a-ea44-47b4-912a-93b3d12a8753.jpeg#averageHue=%23d9d9d9&clientId=u7931e213-9faa-4&from=paste&height=389&id=MZ0af&originHeight=1296&originWidth=950&originalType=binary&ratio=1.5&rotation=0&showTitle=false&size=112057&status=done&style=none&taskId=u23c601bf-a76f-4142-a570-c1f213c40be&title=&width=285.3333740234375)

@@ -7,6 +7,7 @@ import img2pdf
 import glob
 import argparse
 import gradio as gr
+from skimage.metrics import structural_similarity
 
 ############# Define constants
 
@@ -19,6 +20,7 @@ VAR_THRESHOLD = 16               # Threshold on the squared Mahalanobis distance
 DETECT_SHADOWS = False            # If true, the algorithm will detect shadows and mark them.
 MIN_PERCENT = 0.1                # min % of diff between foreground and background to detect if motion has stopped
 MAX_PERCENT = 3                  # max % of diff between foreground and background to detect if frame is still in motion
+SSIM_THRESHOLD = 0.9             # SSIM threshold of two consecutive frame
 
 
 def get_frames(video_path):
@@ -68,6 +70,7 @@ def detect_unique_screenshots(video_path, output_folder_screenshot_path):
     (W, H) = (None, None)
 
     screenshoots_count = 0
+    last_screenshot_file_path = ""
     for frame_count, frame_time, frame in get_frames(video_path):
         orig = frame.copy() # clone the original frame (so we can save it later), 
         frame = imutils.resize(frame, width=600) # resize the frame
@@ -83,8 +86,17 @@ def detect_unique_screenshots(video_path, output_folder_screenshot_path):
             filename = f"{screenshoots_count:03}_{round(frame_time/60, 2)}.png"
 
             path = os.path.join(output_folder_screenshot_path, filename)
-            cv2.imwrite(path, orig)
-            screenshoots_count += 1
+
+            image_ssim = 0.0;
+            if last_screenshot_file_path != "":
+                image_last = cv2.imread(last_screenshot_file_path)
+                image_ssim = structural_similarity(image_last, orig, channel_axis=2, data_range=255)
+
+            if image_ssim < SSIM_THRESHOLD:
+                print("saving {}".format(path))
+                cv2.imwrite(path, orig)
+                last_screenshot_file_path = path
+                screenshoots_count += 1
 
         elif captured and p_diff >= MAX_PERCENT:
             captured = False

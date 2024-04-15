@@ -148,7 +148,7 @@ iface = gr.Interface(
     fn=run_app,
     inputs="text",
     outputs="file",
-    title="正经人王同学的AI实验室||网课人必备的视频转换为pdf（对有ppt那种视频效果特别特别ok）",
+    title="loopytransform：视频转图文pdf||公众号：正经人王同学",
     description="公众号：正经人王同学  全网同名||video_path填写要转换的视频的路径就好 转换完成后即可下载pdf的文件",
     examples=[["./input/test1.mp4"]]
 )

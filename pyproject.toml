@@ -1,0 +1,20 @@
+[tool.poetry]
+name = "videotopdf-ui"
+version = "0.1.0"
+description = ""
+authors = ["zjrwtx <3038880699@qq.com>"]
+license = "GPL"
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.11"
+imutils = "^0.5.4"
+opencv-python = "^4.9.0.80"
+img2pdf = "^0.5.1"
+gradio = "^4.29.0"
+scikit-image = "^0.23.2"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

@@ -1,4 +1,0 @@
-imutils
-opencv_python
-img2pdf
-gradio

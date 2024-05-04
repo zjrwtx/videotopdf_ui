@@ -150,7 +150,7 @@ iface = gr.Interface(
     outputs="file",
     title="loopytransform：视频转图文pdf||公众号：正经人王同学",
     description="公众号：正经人王同学  全网同名||video_path填写要转换的视频的路径就好 转换完成后即可下载pdf的文件",
-    examples=[["./input/test1.mp4"]]
+    examples=[["./input/test01.mp4"]]
 )
 8
 iface.launch()

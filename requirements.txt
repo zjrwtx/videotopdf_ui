@@ -1,5 +1,8 @@
 opencv-python==4.8.1.78
 imutils==0.5.4
 scikit-image==0.22.0
-gradio==4.8.0
-img2pdf==0.5.1 
+gradio
+img2pdf==0.5.1
+openai-whisper
+moviepy==1.0.3
+Pillow>=10.0.0

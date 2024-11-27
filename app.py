@@ -8,6 +8,9 @@ import glob
 from skimage.metrics import structural_similarity
 import gradio as gr
 import tempfile
+import whisper
+from moviepy.editor import VideoFileClip
+from PIL import Image, ImageDraw, ImageFont
 
 ############# Define constants
 
@@ -247,6 +250,160 @@ def process_video_file(video_file):
     except Exception as e:
         raise gr.Error(f"处理视频时出错: {str(e)}")
 
+
+def extract_audio_and_transcribe(video_path, progress=gr.Progress()):
+    """Extract audio from video and transcribe it using Whisper"""
+    progress(0, desc="正在提取音频...")
+    
+    # Load the video and extract audio
+    video = VideoFileClip(video_path)
+    audio = video.audio
+    
+    # Save audio to temporary file
+    temp_audio = tempfile.mktemp(suffix='.wav')
+    audio.write_audiofile(temp_audio)
+    
+    progress(0.3, desc="正在转录音频...")
+    
+    # Load Whisper model and transcribe
+    model = whisper.load_model("base")
+    result = model.transcribe(temp_audio)
+    print("完成的转录文本结果如下："+result)
+    
+    # Clean up
+    os.remove(temp_audio)
+    video.close()
+    
+    # Process segments with timestamps
+    segments = []
+    for segment in result["segments"]:
+        segments.append({
+            "start": segment["start"],
+            "end": segment["end"],
+            "text": segment["text"].strip()
+        })
+    
+    return segments
+
+def add_text_to_image(image_path, text):
+    """Add text below the image"""
+    # Open image
+    img = Image.open(image_path)
+    width, height = img.size
+    
+    # Create new image with space for text
+    font_size = 30
+    font = ImageFont.truetype("arial.ttf", font_size)
+    text_height = font_size * (text.count('\n') + 2)  # Add padding
+    
+    new_img = Image.new('RGB', (width, height + text_height), 'white')
+    new_img.paste(img, (0, 0))
+    
+    # Add text
+    draw = ImageDraw.Draw(new_img)
+    draw.text((10, height + 10), text, font=font, fill='black')
+    
+    # Save the modified image
+    new_img.save(image_path)
+
+def process_video_with_transcription(video_path, output_folder_screenshot_path, progress=gr.Progress()):
+    """Process video with transcription and add text to images"""
+    # First, get the transcription
+    segments = extract_audio_and_transcribe(video_path, progress)
+    
+    # Then get the frames as before
+    saved_files = detect_unique_screenshots(video_path, output_folder_screenshot_path, progress)
+    
+    progress(0.8, desc="正在添加字幕...")
+    
+    # Match transcription segments with images
+    for i, image_path in enumerate(saved_files):
+        # Extract timestamp from filename (format: 000_1.23.png)
+        timestamp = float(os.path.basename(image_path).split('_')[1].split('.png')[0])
+        
+        # Find relevant text segments for this timestamp
+        relevant_text = []
+        for segment in segments:
+            if segment["start"] <= timestamp * 60 <= segment["end"]:
+                relevant_text.append(segment["text"])
+        
+        # Add text to image
+        if relevant_text:
+            text = "\n".join(relevant_text)
+            add_text_to_image(image_path, text)
+    
+    progress(0.9, desc="处理完成...")
+    return saved_files
+
+def run_app_with_transcription(video_path, progress=gr.Progress()):
+    try:
+        if not video_path:
+            raise gr.Error("请选择要处理的视频文件")
+            
+        progress(0, desc="开始处理...")
+        output_folder_screenshot_path = initialize_output_folder(video_path)
+        saved_files = process_video_with_transcription(video_path, output_folder_screenshot_path, progress)
+        return slides_to_pdf(video_path, output_folder_screenshot_path, saved_files, progress)
+    except Exception as e:
+        raise gr.Error(f"处理失败: {str(e)}")
+
+def process_video_file_with_transcription(video_file):
+    """Handle uploaded video file and return PDF with transcription"""
+    try:
+        # If video_file is a string (path), use it directly
+        if isinstance(video_file, str):
+            if video_file.strip() == "":
+                return None
+            return run_app_with_transcription(video_file)
+            
+        # If it's an uploaded file, create a temporary file
+        if video_file is not None:
+            # Generate a unique filename for the temporary video
+            temp_filename = f"temp_video_{int(time.time())}.mp4"
+            temp_path = os.path.join(tempfile.gettempdir(), temp_filename)
+            
+            try:
+                if hasattr(video_file, 'name'):  # If it's already a file path
+                    shutil.copyfile(video_file, temp_path)
+                else:  # If it's file content
+                    with open(temp_path, 'wb') as f:
+                        f.write(video_file)
+                
+                # Process the video
+                output_folder_screenshot_path, saved_files = video_to_slides(temp_path)
+                saved_files = process_video_with_transcription(temp_path, output_folder_screenshot_path)
+                pdf_path = slides_to_pdf(temp_path, output_folder_screenshot_path, saved_files)
+                
+                # Cleanup
+                if os.path.exists(temp_path):
+                    os.unlink(temp_path)
+                return pdf_path
+                
+            except Exception as e:
+                if os.path.exists(temp_path):
+                    os.unlink(temp_path)
+                raise gr.Error(f"处理视频时出错: {str(e)}")
+        return None
+    except Exception as e:
+        raise gr.Error(f"处理视频时出错: {str(e)}")
+
+
+def process_video(video, path):
+    if video:
+        return run_app(video)
+    elif path:
+        return run_app(path)
+    else:
+        raise gr.Error("请上传视频或输入视频路径")
+
+def handle_video_with_transcription(video, path):
+    if video:
+        return run_app_with_transcription(video)
+    elif path:
+        return run_app_with_transcription(path)
+    else:
+        raise gr.Error("请上传视频或输入视频路径")
+
 # Create a modern interface with custom CSS
 css = """
 .gradio-container {
@@ -275,55 +432,40 @@ css = """
 }
 """
 
-with gr.Blocks(css=css) as iface:
-    gr.Markdown(
-        """
-        # 🎥 视频转PDF智能助手
-        
-        ### 轻松将视频转换为高质量PDF文档
-        公众号：正经人王同学 | 全网同名
-        """
-    )
-    
-    with gr.Row():
-        with gr.Column():
-            video_input = gr.Video(label="上传视频")
-            video_path = gr.Textbox(label="或输入视频路径", placeholder="例如: ./input/video.mp4")
-            convert_btn = gr.Button("开始转换", variant="primary")
-        
-    with gr.Row():
-        output_file = gr.File(label="下载PDF")
-        
-    with gr.Row():
-        status = gr.Markdown(value="", elem_classes=["status-info"])
-    
-    gr.Markdown(
-        """
-        ### 使用说明
-        1. 上传视频文件 或 输入视频文件路径
-        2. 点击"开始转换"按钮
-        3. 等待处理完成后下载生成的PDF文件
-        
-        ### 特点
-        - 智能检测视频关键帧
-        - 高质量PDF输出
-        - 支持多种视频格式
-        """
-    )
-    
-    def process_video(video, path):
-        if video:
-            return run_app(video)
-        elif path:
-            return run_app(path)
-        else:
-            raise gr.Error("请上传视频或输入视频路径")
-    
-    convert_btn.click(
-        fn=process_video,
-        inputs=[video_input, video_path],
-        outputs=[output_file],
-    )
-
 if __name__ == "__main__":
+    with gr.Blocks(css=css) as iface:
+        gr.Markdown("# 视频转PDF工具")
+        
+        with gr.Tab("基础转换"):
+            with gr.Row():
+                with gr.Column():
+                    video_input = gr.Video(label="上传视频")
+                    video_path = gr.Textbox(label="或输入视频路径", placeholder="例如: ./input/video.mp4")
+                    convert_btn = gr.Button("开始转换", variant="primary")
+                
+            with gr.Row():
+                output_file = gr.File(label="下载PDF")
+        
+        with gr.Tab("带语音转文字"):
+            with gr.Row():
+                with gr.Column():
+                    video_input_with_transcription = gr.Video(label="上传视频")
+                    video_path_with_transcription = gr.Textbox(label="或输入视频路径", placeholder="例如: ./input/video.mp4")
+                    convert_btn_with_transcription = gr.Button("开始转换（带字幕）", variant="primary")
+                
+            with gr.Row():
+                output_file_with_transcription = gr.File(label="下载PDF（带字幕）")
+        
+        convert_btn.click(
+            fn=process_video,
+            inputs=[video_input, video_path],
+            outputs=[output_file],
+        )
+        
+        convert_btn_with_transcription.click(
+            fn=handle_video_with_transcription,
+            inputs=[video_input_with_transcription, video_path_with_transcription],
+            outputs=[output_file_with_transcription],
+        )
+        
     iface.launch()

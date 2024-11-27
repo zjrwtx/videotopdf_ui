@@ -1,7 +1,10 @@
 # 视频转PDF智能助手
+使用地址：https://zjrwtxtechstudio-video-to-pdf.hf.space
 
 这是一个基于 Gradio 的 Web 应用，可以将视频自动转换为 PDF 文档。应用会智能检测视频中的关键帧，并将其转换为高质量的 PDF 文件。同时支持视频语音转写功能，可以将视频中的语音内容自动转换为文字。
 ![image](https://github.com/user-attachments/assets/e6b797b0-1893-44aa-a70d-22f9052f0268)
+
+
 
 ## 功能特点
 
